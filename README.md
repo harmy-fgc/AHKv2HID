@@ -1,5 +1,7 @@
 # KBLayerHelper
 
+THIS IS A CURRENT PROJECT - REWORKING WITH AHK V2
+
 On Screen Display of layer name and layout image for QMK keyboards - Autohotkey based.
 
 ## Overview
