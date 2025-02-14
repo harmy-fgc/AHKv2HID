@@ -5,10 +5,13 @@
 script_title := "KBLayerHelper"
 script_version := "17/01/2023"
 script_author := "Raph.Coder"
-global script_ini := A_ScriptDir "\" script_title ".ini"
 
 ; defining of global variables
 SetWorkingDir(A_ScriptDir)
+
+global script_ini := A_ScriptDir "\" script_title ".ini"
+MsgBox("INI File Path: " script_ini)
+
 
 global VendorId := 16715
 global ProductId := 1
@@ -103,10 +106,13 @@ mainGUI.Show()
 }
 
 ; Function to set the tray icon
+; Function to set the tray icon
 SetTrayIcon(iconPath) {
+    MsgBox("Setting tray icon to: " iconPath)
     if FileExist(iconPath) {
         A_TrayMenu.SetIcon(iconPath)  ; Use A_TrayMenu.SetIcon() to set the tray icon
     } else {
+        MsgBox("Icon file not found: " iconPath)
         A_TrayMenu.SetIcon(DEFAULT_ICON_PATH)  ; Fallback to the default icon
     }
 }
@@ -147,6 +153,7 @@ ReadIniFile() {
 
     For array_idx, layerLine in StrSplit(outputVarSection, "`n", " `t") {
         idx := array_idx - 1
+            MsgBox("Contents of [Layers] Section: " outputVarSection)
 
         ; Ensure layerLine is not empty
         if layerLine != "" {
@@ -220,6 +227,9 @@ ShowLayoutOSD(key, image) {
     width := LayoutSize[1]
     height := LayoutSize[2]
 
+    ; Debugging: Display the layer key and image path
+    MsgBox("Displaying layout for: " key "`nImage: " image)
+
     if !WinExist("layoutGUI") {
         layoutLayer := Gui()
         layoutLayer.MarginX := 0
@@ -228,19 +238,19 @@ ShowLayoutOSD(key, image) {
         oWidth := width
         oHeight := height
         if (FileExist(image)) {
-        ogclayoutPicture := layoutLayer.Add("Picture", "vlayoutPicture AltSubmit BackgroundTrans", image)
-        myPict := ogclayoutPicture.Hwnd
+            ogclayoutPicture := layoutLayer.Add("Picture", "vlayoutPicture AltSubmit BackgroundTrans", image)
+            myPict := ogclayoutPicture.Hwnd
 
-        ; Get the dimensions of the image
-        ImageGetSize(image, &iWidth, &iHeight)
+            ; Get the dimensions of the image
+            ImageGetSize(image, &iWidth, &iHeight)
 
-        if (iWidth / iHeight > oWidth / oHeight)
-            oHeight := width * iHeight / iWidth
-        else
-            oWidth := height * iWidth / iHeight
+            if (iWidth / iHeight > oWidth / oHeight)
+                oHeight := width * iHeight / iWidth
+            else
+                oWidth := height * iWidth / iHeight
 
-        ogclayoutPicture.Move(width / 2 - oWidth / 2, height - oHeight, oWidth, oHeight)
-}
+            ogclayoutPicture.Move(width / 2 - oWidth / 2, height - oHeight, oWidth, oHeight)
+        }
 
         layoutLayer.SetFont("s" LayoutFontSize " cBlack", "Verdana")
         ogcTextlayoutNameID := layoutLayer.Add("Text", "y0 x0 w" width " h" height " BackGroundTrans Center vlayoutNameID", key)
@@ -261,9 +271,11 @@ ShowLayoutOSD(key, image) {
         SetTimer(HideLayoutOSD, -LayoutDuration)
         if (MomentaryTimerRunning)
             SetTimer(StopMomentaryDisplay, -MomentaryLayoutDisplayDuration)
-    }
-    else
+    } else {
+        ; Debugging: Report missing image file
+        MsgBox("Image file not found: " image)
         HideLayoutOSD()
+    }
 }
 
 ShowLayerNameOSD(key) {
