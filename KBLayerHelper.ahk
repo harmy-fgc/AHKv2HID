@@ -44,15 +44,64 @@ ReadIniFile()
 ; Set tray icon of layer 0
 SetTrayIcon(LayerArray[0].ico)
 
-; Set hotkey to disable timeout
-Hotkey(LockHotKey, ChangeNoDisplayTimeout, "on")
-Hotkey(LayoutDisplayHotKey, ChangeDisplayLayout, "on")
-Hotkey(MomentaryLayoutDisplayHotKey, MomentaryLayoutDisplay, "on")
+
+; Normalize and validate hotkey strings
+LockHotKey := Trim(LockHotKey)
+LayoutDisplayHotKey := Trim(LayoutDisplayHotKey)
+MomentaryLayoutDisplayHotKey := Trim(MomentaryLayoutDisplayHotKey)
+
+if (!IsValidHotkey(LockHotKey)) {
+    MsgBox("Error: Invalid LockHotKey value. Using default.")
+    LockHotKey := "+^!#F12"
+}
+if (!IsValidHotkey(LayoutDisplayHotKey)) {
+    MsgBox("Error: Invalid LayoutDisplayHotKey value. Using default.")
+    LayoutDisplayHotKey := "+^!#F11"
+}
+if (!IsValidHotkey(MomentaryLayoutDisplayHotKey)) {
+    MsgBox("Error: Invalid MomentaryLayoutDisplayHotKey value. Using default.")
+    MomentaryLayoutDisplayHotKey := "+^!#F10"
+}
+
+; Debugging: Check hotkey values
+MsgBox("Hotkey Debugging:`nLockHotKey: [" LockHotKey "]`nLayoutDisplayHotKey: [" LayoutDisplayHotKey "]`nMomentaryLayoutDisplayHotKey: [" MomentaryLayoutDisplayHotKey "]")
+
+; Validate hotkey strings
+if (LockHotKey = "") {
+    MsgBox("Error: LockHotKey is empty!")
+}
+if (LayoutDisplayHotKey = "") {
+    MsgBox("Error: LayoutDisplayHotKey is empty!")
+}
+if (MomentaryLayoutDisplayHotKey = "") {
+    MsgBox("Error: MomentaryLayoutDisplayHotKey is empty!")
+}
+
+
+
+
+
+; Function to validate hotkey strings
+IsValidHotkey(hotkey) {
+    ; Check if the hotkey is empty
+    if (hotkey = "")
+        return false
+
+    ; Check for invalid characters (basic validation)
+    if RegExMatch(hotkey, "[^\w!^+#]") {
+        MsgBox("Invalid character detected in hotkey: " hotkey)
+        return false
+    }
+
+    ; Additional validation logic can be added here
+    return true
+}
+
 
 ; Construct tray icon menu
-A_TrayMenu.Add("Show Layout", ChangeDisplayLayout)
-A_TrayMenu.Add("Show Layer Name", ChangeDisplayLayerName)
-A_TrayMenu.Add("No timeout", ChangeNoDisplayTimeout)
+A_TrayMenu.Add("Show Layout", (*) => ChangeDisplayLayout())
+A_TrayMenu.Add("Show Layer Name", (*) => ChangeDisplayLayerName())
+A_TrayMenu.Add("No timeout", (*) => ChangeNoDisplayTimeout())
 
 A_TrayMenu.Add() ; separator
 A_TrayMenu.Add("Reload " script_title, (*) => Reload())
@@ -106,27 +155,44 @@ mainGUI.Show()
 }
 
 ; Function to set the tray icon
-; Function to set the tray icon
 SetTrayIcon(iconPath) {
-    MsgBox("Setting tray icon to: " iconPath)
+    MsgBox("Setting tray icon to: " iconPath)  ; Debugging: Show the icon path being used
     if FileExist(iconPath) {
-        A_TrayMenu.SetIcon(iconPath)  ; Use A_TrayMenu.SetIcon() to set the tray icon
+        A_TrayMenu.SetIcon("", iconPath)  ; Correct usage: Pass an empty string for the default tray icon
     } else {
         MsgBox("Icon file not found: " iconPath)
-        A_TrayMenu.SetIcon(DEFAULT_ICON_PATH)  ; Fallback to the default icon
+        A_TrayMenu.SetIcon("", DEFAULT_ICON_PATH)  ; Fallback to the default icon
     }
 }
 
-; Function to read the ini file
 ReadIniFile() {
+    ; Check if the INI file exists
+    if !FileExist(script_ini) {
+        MsgBox("Error: INI file not found: " script_ini)
+        ExitApp()
+    }
+
+    ; Read values from the INI file
     VendorId := IniRead(script_ini, "Device", "VendorId", 16715)
     ProductId := IniRead(script_ini, "Device", "ProductId", 1)
 
     NoDisplayTimeout := IniRead(script_ini, "General", "NoDisplayTimeout", 0)
-    LockHotKey := IniRead(script_ini, "General", "LockHotKey", "!NumLock")
-    LayoutDisplayHotKey := IniRead(script_ini, "General", "LayoutDisplayHotKey", "+^!#d")
-    MomentaryLayoutDisplayHotKey := IniRead(script_ini, "General", "MomentaryLayoutDisplayHotKey", "+^!#f")
+    LockHotKey := Trim(IniRead(script_ini, "General", "LockHotKey", "+^!#F12"))
+    LayoutDisplayHotKey := Trim(IniRead(script_ini, "General", "LayoutDisplayHotKey", "+^!#F11"))
+    MomentaryLayoutDisplayHotKey := Trim(IniRead(script_ini, "General", "MomentaryLayoutDisplayHotKey", "+^!#F10"))
     MomentaryLayoutDisplayDuration := IniRead(script_ini, "General", "MomentaryLayoutDisplayDuration", 1000)
+
+    ; Debugging: Display the hotkeys being used
+    MsgBox("LockHotKey: [" LockHotKey "]`nLayoutDisplayHotKey: [" LayoutDisplayHotKey "]`nMomentaryLayoutDisplayHotKey: [" MomentaryLayoutDisplayHotKey "]")
+
+    ; Validate hotkey values
+    if (LockHotKey = "")
+        LockHotKey := "+^!#F12"  ; Default: Shift + Ctrl + Alt + Win + F12
+    if (LayoutDisplayHotKey = "")
+        LayoutDisplayHotKey := "+^!#F11"  ; Default: Shift + Ctrl + Alt + Win + F11
+    if (MomentaryLayoutDisplayHotKey = "")
+        MomentaryLayoutDisplayHotKey := "+^!#F10"  ; Default: Shift + Ctrl + Alt + Win + F10
+
 
     DisplayLayout := IniRead(script_ini, "Layout", "DisplayLayout", 1)
     inipos := IniRead(script_ini, "Layout", "Position", "center,-50")
