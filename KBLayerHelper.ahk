@@ -38,6 +38,7 @@ global layoutLayer := Gui()
 global LayerArray := Map() ; Initialize as a Map object ; - harmy
 global DEFAULT_ICON_PATH := "./icons/ico/default.ico" ; Define default icon path - harmy
 
+
 ; Ini file read
 ReadIniFile()
 
@@ -166,6 +167,12 @@ SetTrayIcon(iconPath) {
 }
 
 ReadIniFile() {
+    global script_ini, VendorId, ProductId, NoDisplayTimeout, LockHotKey, LayoutDisplayHotKey
+    global MomentaryLayoutDisplayHotKey, MomentaryLayoutDisplayDuration, DisplayLayout, LayoutPosition
+    global LayoutSize, LayoutFontSize, LayoutTransparency, LayoutDuration, DisplayLayerName
+    global LayerNamePosition, LayerNameSize, LayerNameFontSize, LayerNameDuration, LayerNameTransparency
+    global LayerArray, DEFAULT_ICON_PATH  ; Explicitly declare all required global variables
+
     ; Check if the INI file exists
     if !FileExist(script_ini) {
         MsgBox("Error: INI file not found: " script_ini)
@@ -181,18 +188,6 @@ ReadIniFile() {
     LayoutDisplayHotKey := Trim(IniRead(script_ini, "General", "LayoutDisplayHotKey", "+^!#F11"))
     MomentaryLayoutDisplayHotKey := Trim(IniRead(script_ini, "General", "MomentaryLayoutDisplayHotKey", "+^!#F10"))
     MomentaryLayoutDisplayDuration := IniRead(script_ini, "General", "MomentaryLayoutDisplayDuration", 1000)
-
-    ; Debugging: Display the hotkeys being used
-    MsgBox("LockHotKey: [" LockHotKey "]`nLayoutDisplayHotKey: [" LayoutDisplayHotKey "]`nMomentaryLayoutDisplayHotKey: [" MomentaryLayoutDisplayHotKey "]")
-
-    ; Validate hotkey values
-    if (LockHotKey = "")
-        LockHotKey := "+^!#F12"  ; Default: Shift + Ctrl + Alt + Win + F12
-    if (LayoutDisplayHotKey = "")
-        LayoutDisplayHotKey := "+^!#F11"  ; Default: Shift + Ctrl + Alt + Win + F11
-    if (MomentaryLayoutDisplayHotKey = "")
-        MomentaryLayoutDisplayHotKey := "+^!#F10"  ; Default: Shift + Ctrl + Alt + Win + F10
-
 
     DisplayLayout := IniRead(script_ini, "Layout", "DisplayLayout", 1)
     inipos := IniRead(script_ini, "Layout", "Position", "center,-50")
@@ -219,7 +214,6 @@ ReadIniFile() {
 
     For array_idx, layerLine in StrSplit(outputVarSection, "`n", " `t") {
         idx := array_idx - 1
-            MsgBox("Contents of [Layers] Section: " outputVarSection)
 
         ; Ensure layerLine is not empty
         if layerLine != "" {
@@ -237,11 +231,11 @@ ReadIniFile() {
                 if !FileExist(ico) {
                     MsgBox("Icon file not found: " ico)
                     ico := DEFAULT_ICON_PATH
-            }
-            if !FileExist(image) {
-                MsgBox("Image file not found: " image)
-                image := "./png/default.png"
-}
+                }
+                if !FileExist(image) {
+                    MsgBox("Image file not found: " image)
+                    image := "./png/default.png"
+                }
 
                 ; Assign values to LayerArray
                 LayerArray[layerRef] := {label: label, ico: ico, image: image}
@@ -259,8 +253,8 @@ ReadIniFile() {
             label: "Default Layer",
             ico: DEFAULT_ICON_PATH,
             image: "./png/default.png"
+        }
     }
-}
 
     ; Debugging: Log the contents of LayerArray
     for key, value in LayerArray {
@@ -384,6 +378,8 @@ HideLayerNameOSD() {
 }
 
 MomentaryLayoutDisplay() {
+    global DisplayLayout, MomentaryTimerRunning, MomentaryLayoutDisplayDuration  ; Explicitly declare the required global variables
+
     if (!DisplayLayout) {
         SetTimer(StopMomentaryDisplay, -MomentaryLayoutDisplayDuration)
         DisplayLayout := 1
@@ -392,6 +388,8 @@ MomentaryLayoutDisplay() {
 }
 
 StopMomentaryDisplay() {
+    global DisplayLayout, MomentaryTimerRunning  ; Explicitly declare the required global variables
+
     SetTimer(StopMomentaryDisplay, 0)
     if (MomentaryTimerRunning)
         DisplayLayout := 0
@@ -399,6 +397,8 @@ StopMomentaryDisplay() {
 }
 
 ChangeDisplayLayout() {
+    global DisplayLayout, script_ini  ; Explicitly declare the required global variables
+
     if (DisplayLayout) {
         DisplayLayout := 0
         A_TrayMenu.UnCheck("Show Layout")
@@ -411,6 +411,8 @@ ChangeDisplayLayout() {
 }
 
 ChangeDisplayLayerName() {
+    global DisplayLayerName, script_ini  ; Explicitly declare the required global variables
+
     if (DisplayLayerName) {
         DisplayLayerName := 0
         A_TrayMenu.UnCheck("Show Layer Name")
@@ -423,6 +425,8 @@ ChangeDisplayLayerName() {
 }
 
 ChangeNoDisplayTimeout() {
+    global NoDisplayTimeout, indicatorLayer, layoutLayer, script_ini  ; Explicitly declare the required global variables
+
     if (NoDisplayTimeout) {
         NoDisplayTimeout := 0
         indicatorLayer := Gui()
