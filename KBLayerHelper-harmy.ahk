@@ -13,8 +13,8 @@ global script_ini := A_ScriptDir "\" script_title ".ini"
 MsgBox("INI File Path: " script_ini)
 
 
-global VendorId := 16715
-global ProductId := 1
+global VendorId := 0x137D
+global ProductId := 0x1337
 global DisplayLayout := 0
 global LayoutSize := []
 global LayoutPosition := []
